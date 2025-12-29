@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 6 Chunks Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Lexend', 'Noto Sans TC', sans-serif; background: #f8fafc; }
+        .chunk-highlight { color: #0ea5e9; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
+        .tab-active { background: #0ea5e9; color: white; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .btn-check { transition: all 0.2s; border-width: 2px; }
+        .btn-check:active { transform: scale(0.95); }
+        .screenshot-area { background: white; border: 2px solid #e2e8f0; padding: 2rem; border-radius: 1.5rem; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-sky-800 flex items-center">
+                <span class="mr-2 text-2xl">✨</span> Lesson 6 語塊專家
+            </h1>
+            <div class="flex space-x-1 bg-slate-100 p-1 rounded-xl text-sm">
+                <button onclick="switchMode('list')" id="btn-mode-list" class="px-4 py-2 rounded-lg font-bold transition tab-active">全部例句</button>
+                <button onclick="switchMode('quiz')" id="btn-mode-quiz" class="px-4 py-2 rounded-lg font-bold transition text-slate-500">語塊挑戰</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-4 pt-8">
+
+        <!-- Mode: List View -->
+        <div id="mode-list" class="mode-content space-y-4">
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mb-6 flex items-center">
+                <span class="text-2xl mr-3">💡</span>
+                <p class="text-amber-900 text-sm font-medium">學生們！請先練習這 29 句。挑戰模式會從中隨機選出 10 題喔！</p>
+            </div>
+            <div id="list-container" class="space-y-4"></div>
+        </div>
+
+        <!-- Mode: Quiz Challenge -->
+        <div id="mode-quiz" class="mode-content hidden">
+            <!-- Name Input Stage -->
+            <div id="quiz-auth" class="bg-white rounded-3xl card-shadow p-10 text-center border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">準備好挑戰了嗎？</h2>
+                <p class="text-slate-500 mb-8">請輸入你的姓名以開始 10 題隨機挑戰：</p>
+                <input type="text" id="student-name" placeholder="請輸入姓名" class="w-full max-w-xs mx-auto block p-4 border-2 border-slate-200 rounded-xl mb-6 focus:border-sky-400 focus:outline-none font-bold text-center text-lg">
+                <button onclick="initQuizSession()" class="bg-sky-500 text-white px-12 py-4 rounded-xl font-black shadow-lg hover:bg-sky-600 transition text-lg">開始挑戰</button>
+            </div>
+
+            <!-- Quiz Play Stage -->
+            <div id="quiz-play" class="hidden">
+                <div class="bg-white rounded-3xl card-shadow p-8 mb-8 border border-slate-100">
+                    <div class="flex justify-between items-center mb-8">
+                        <span id="quiz-progress" class="font-black text-sky-700 bg-sky-50 px-4 py-1.5 rounded-full text-sm tracking-widest">STEP 1/10</span>
+                        <div class="text-right">
+                            <p id="quiz-user-display" class="text-xs text-slate-400 font-bold uppercase"></p>
+                            <span id="quiz-score" class="text-orange-500 font-bold bg-orange-50 px-4 py-1.5 rounded-full text-sm">SCORE: 0</span>
+                        </div>
+                    </div>
+                    <div id="quiz-area" class="text-center min-h-[140px] flex flex-col justify-center">
+                        <!-- Dynamic Content -->
+                    </div>
+                    <div id="quiz-feedback" class="mt-8 text-center h-8 font-bold text-lg"></div>
+                </div>
+                <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Quiz Result Stage -->
+            <div id="quiz-result" class="hidden">
+                <div class="screenshot-area shadow-2xl" id="final-report">
+                    <div class="text-center mb-6">
+                        <div class="text-6xl mb-4">🏆</div>
+                        <h2 class="text-3xl font-black text-slate-800">挑戰結算報告</h2>
+                        <div class="w-16 h-1 bg-sky-500 mx-auto mt-2"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <p class="text-slate-400 text-xs font-bold uppercase mb-1">學生姓名</p>
+                            <p id="res-name" class="text-xl font-black text-slate-700"></p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <p class="text-slate-400 text-xs font-bold uppercase mb-1">完成日期</p>
+                            <p id="res-date" class="text-xl font-black text-slate-700"></p>
+                        </div>
+                        <div class="bg-sky-500 p-4 rounded-xl col-span-2 text-center">
+                            <p class="text-sky-100 text-xs font-bold uppercase mb-1">最終得分 (Total Score)</p>
+                            <p id="res-score" class="text-4xl font-black text-white"></p>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-slate-400 text-sm italic">📸 請截圖此畫面傳送給老師進行核對</p>
+                </div>
+                
+                <div class="flex justify-center mt-8 space-x-4">
+                    <button onclick="switchMode('list')" class="bg-slate-200 text-slate-600 px-8 py-3 rounded-full font-bold">返回例句</button>
+                    <button onclick="switchMode('quiz')" class="bg-sky-500 text-white px-8 py-3 rounded-full font-bold shadow-lg">重新挑戰</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const rawData = [
+            { id: 1, eng: "The kids were **bored with** doing homework all day.", chunk: "bored with", chn: "孩子們整天寫功課感到**很無聊**。" },
+            { id: 2, eng: "James fell asleep because the show on TV was **very boring**.", chunk: "very boring", chn: "James 睡著了，因為電視節目**很無聊**。" },
+            { id: 3, eng: "Mr. Smith called to **complain about** the noise.", chunk: "complain about", chn: "史密斯先生打電話**抱怨**噪音。" },
+            { id: 4, eng: "She wasn't angry. **Instead**, she gave me a hug.", chunk: "Instead", chn: "她沒生氣。**相反地**，她給了我一個擁抱。" },
+            { id: 5, eng: "Amber's **musical talent** impressed everyone.", chunk: "musical talent", chn: "Amber 的**音樂才華**讓大家印象深刻。" },
+            { id: 6, eng: "Chinese is **recognized as** one of the hardest languages.", chunk: "recognized as", chn: "中文被**公認為**最難的語言之一。" },
+            { id: 7, eng: "Justin **had trouble focusing on** his studies.", chunk: "had trouble focusing on", chn: "Justin **難以專注於**學業上。" },
+            { id: 8, eng: "In today's class, our **focus will be on** history.", chunk: "focus will be on", chn: "今天的課程**焦點將在**歷史上。" },
+            { id: 9, eng: "Problems were solved in a **short period of time**.", chunk: "short period of time", chn: "問題在**短時間內**就解決了。" },
+            { id: 10, eng: "The director **felt confident about** her new movie.", chunk: "felt confident about", chn: "導演對她的新電影**很有信心**。" },
+            { id: 11, eng: "We **have confidence in** George's ability.", chunk: "have confidence in", chn: "我們對 George 的能力**有信心**。" },
+            { id: 12, eng: "Ms. Lin is **very patient with** her students.", chunk: "very patient with", chn: "林老師對學生**非常有耐心**。" },
+            { id: 13, eng: "Justin **ran out of patience** and decided to leave.", chunk: "ran out of patience", chn: "Justin **用完了耐心**並決定離開。" },
+            { id: 14, eng: "Max was **determined to quit** smoking.", chunk: "determined to quit", chn: "Max **下定決心**要戒菸。" },
+            { id: 15, eng: "You should **determine your own** future.", chunk: "determine your own", chn: "你應該**決定你自己**的未來。" },
+            { id: 16, eng: "An **image of the bank robber** was shown on screen.", chunk: "image of the bank robber", chn: "**銀行強盜的影像**顯示在螢幕上。" },
+            { id: 17, eng: "We should respect differences because **everyone is unique**.", chunk: "everyone is unique", chn: "我們應該尊重差異，因為**每個人都是獨一無二的**。" },
+            { id: 18, eng: "**Regular customers** of this airline enjoy lower prices.", chunk: "Regular customers", chn: "這家航空公司的**常客**享有較低的票價。" },
+            { id: 19, eng: "**With his support**, I prepared a really good speech.", chunk: "With his support", chn: "**在他的支持下**，我準備了一場很好的演講。" },
+            { id: 20, eng: "Some people **strongly supported** my idea in the meeting.", chunk: "strongly supported", chn: "會議中有些人**強烈支持**我的想法。" },
+            { id: 21, eng: "The concert was a **big success**.", chunk: "big success", chn: "音樂會**非常成功**。" },
+            { id: 22, eng: "Robert is already a very **successful businessman**.", chunk: "successful businessman", chn: "Robert 已經是一位非常**成功的商人**。" },
+            { id: 23, eng: "The film **inspired lots of people** to care more about nature.", chunk: "inspired lots of people", chn: "這部影片**啟發了許多人**多關心大自然。" },
+            { id: 24, eng: "They **turned out to be** my new neighbors.", chunk: "turned out to be", chn: "他們**結果竟然是**我的新鄰居。" },
+            { id: 25, eng: "Mrs. Jones **no longer lives** in this building.", chunk: "no longer lives", chn: "Jones 太太**不再住**在這棟大樓了。" },
+            { id: 26, eng: "Life **is filled with** surprises.", chunk: "is filled with", chn: "生活**充滿了**驚喜。" },
+            { id: 27, eng: "**As a result**, I feel pretty tired now.", chunk: "As a result", chn: "**因此**，我現在感到很累。" },
+            { id: 28, eng: "Our plan will work out quite well **in the end**.", chunk: "in the end", chn: "我們的計畫**最後**會進展得很順利。" },
+            { id: 29, eng: "**Make the most of** your vacation by helping others.", chunk: "Make the most of", chn: "**充分利用**你的假期。" }
+        ];
+
+        let currentIdx = 0;
+        let score = 0;
+        let quizPool = [];
+        let userName = "";
+
+        window.onload = () => {
+            renderList();
+        };
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text.replace(/\*\*/g, ''));
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function switchMode(mode) {
+            document.querySelectorAll('.mode-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('mode-' + mode).classList.remove('hidden');
+            
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('tab-active', 'text-slate-500'));
+            const activeBtn = document.getElementById('btn-mode-' + mode);
+            activeBtn.classList.add('tab-active');
+
+            if (mode === 'quiz') {
+                document.getElementById('quiz-auth').classList.remove('hidden');
+                document.getElementById('quiz-play').classList.add('hidden');
+                document.getElementById('quiz-result').classList.add('hidden');
+                document.getElementById('student-name').value = userName; 
+            }
+        }
+
+        function renderList() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = "";
+            rawData.forEach(item => {
+                const htmlEng = item.eng.replace(/\*\*(.*?)\*\*/g, `<span class="chunk-highlight cursor-pointer" onclick="event.stopPropagation(); speak('$1')">$1</span>`);
+                const htmlChn = item.chn.replace(/\*\*(.*?)\*\*/g, `<span class="text-sky-600 underline font-bold">$1</span>`);
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-2xl border border-slate-100 card-shadow flex items-start space-x-4";
+                card.innerHTML = `
+                    <div class="mt-1 flex flex-col items-center">
+                        <span class="text-xs font-black text-slate-300 mb-2">#${item.id}</span>
+                        <button onclick="speak('${item.eng}')" class="p-2 bg-sky-50 rounded-full text-sky-500 hover:bg-sky-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M160,32V224a8,8,0,0,1-12.91,6.31L77.25,176H32a16,16,0,0,1-16-16V96A16,16,0,0,1,32,80H77.25l69.84-54.31A8,8,0,0,1,160,32Z"></path></svg>
+                        </button>
+                    </div>
+                    <div>
+                        <p class="text-xl text-slate-800 font-medium leading-relaxed">${htmlEng}</p>
+                        <p class="text-slate-400 text-sm mt-2 font-bold">${htmlChn}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function initQuizSession() {
+            const nameField = document.getElementById('student-name');
+            if (!nameField.value.trim()) {
+                nameField.classList.add('border-red-400');
+                return;
+            }
+            userName = nameField.value.trim();
+            document.getElementById('quiz-auth').classList.add('hidden');
+            document.getElementById('quiz-play').classList.remove('hidden');
+            document.getElementById('quiz-user-display').innerText = `Student: ${userName}`;
+            startQuiz();
+        }
+
+        function startQuiz() {
+            currentIdx = 0;
+            score = 0;
+            quizPool = [...rawData].sort(() => Math.random() - 0.5).slice(0, 10);
+            updateQuiz();
+        }
+
+        function updateQuiz() {
+            if (currentIdx >= quizPool.length) {
+                showFinalReport();
+                return;
+            }
+            const q = quizPool[currentIdx];
+            document.getElementById('quiz-progress').innerText = `STEP ${currentIdx + 1}/10`;
+            document.getElementById('quiz-score').innerText = `SCORE: ${score}`;
+            document.getElementById('quiz-feedback').innerText = "";
+            
+            const area = document.getElementById('quiz-area');
+            const displayQ = q.eng.replace(/\*\*(.*?)\*\*/g, '<span class="bg-sky-50 text-sky-50 px-3 py-1 rounded-lg border-b-2 border-sky-400 mx-1">__________</span>');
+            
+            area.innerHTML = `
+                <p class="text-slate-400 text-sm mb-4 font-bold tracking-widest">${q.chn.replace(/<[^>]*>/g, '').replace(/\*\*/g, '')}</p>
+                <h3 class="text-2xl md:text-3xl font-extrabold text-slate-800">${displayQ}</h3>
+            `;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = "";
+            
+            let distractors = rawData
+                .filter(d => d.chunk !== q.chunk)
+                .map(d => d.chunk);
+            
+            distractors = [...new Set(distractors)].sort(() => Math.random() - 0.5).slice(0, 3);
+            let allOptions = [q.chunk, ...distractors].sort(() => Math.random() - 0.5);
+            
+            allOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-2 border-slate-100 p-5 rounded-2xl font-bold text-slate-600 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50 transition btn-check text-lg";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(document.getElementById('quiz-feedback').innerText !== "") return;
+                    check(opt, q.chunk, btn);
+                };
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function check(selected, correct, btn) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (selected === correct) {
+                score += 10;
+                btn.classList.replace('border-slate-100', 'border-green-500');
+                btn.classList.add('bg-green-50', 'text-green-600');
+                feedback.innerHTML = "✅ Excellent!";
+                feedback.className = "mt-8 text-center font-bold text-green-500 text-xl";
+                speak(rawData.find(d => d.chunk === correct).eng);
+            } else {
+                btn.classList.replace('border-slate-100', 'border-red-500');
+                btn.classList.add('bg-red-50', 'text-red-600');
+                feedback.innerHTML = `❌ Wrong! It's <span class='underline'>${correct}</span>`;
+                feedback.className = "mt-8 text-center font-bold text-red-500 text-xl";
+            }
+            
+            setTimeout(() => {
+                currentIdx++;
+                updateQuiz();
+            }, 1800);
+        }
+
+        function showFinalReport() {
+            document.getElementById('quiz-play').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            
+            document.getElementById('res-name').innerText = userName;
+            document.getElementById('res-score').innerText = `${score} / 100`;
+            
+            const now = new Date();
+            document.getElementById('res-date').innerText = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
